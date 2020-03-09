@@ -10,8 +10,6 @@ project(traversability_projection)
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   message_filters
-  image_geometry
-  grid_map_msgs
   grid_map_ros
   pcl_ros
 )
