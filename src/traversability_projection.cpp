@@ -31,10 +31,10 @@ void TraversabilityProjection::colorDepthCallback(const sensor_msgs::ImageConstP
     cloud.points.push_back(pt);
   }
 
-  // Transform point cloud from left camera to map frame
+  // Transform point cloud from left color camera to map frame
   sensor_msgs::PointCloud2 cloud_msg;
   pcl::toROSMsg(cloud, cloud_msg);
-  cloud_msg.header.frame_id = "/left_camera";
+  cloud_msg.header.frame_id = "/left_color_camera";
   sensor_msgs::PointCloud cloud1;
   sensor_msgs::convertPointCloud2ToPointCloud(cloud_msg, cloud1);
 
@@ -53,23 +53,29 @@ void TraversabilityProjection::colorDepthCallback(const sensor_msgs::ImageConstP
   cloud_msg.header.frame_id = "/map";
 
   // Add msgs to queues
-  color_queue_.push(*color_msg);
+  depth_queue_.push(*depth_msg);
   cloud_queue_.push(cloud_msg);
-  std::cout << color_queue_.size() << std::endl;
+  std::cout << depth_queue_.size() << std::endl;
 
   project(width, height);
 }
 
 void TraversabilityProjection::project(int width, int height) {
 
-  std::string proj_img_dir = "/media/ganlu/PERL-SSD/Datasets/KITTI/dataset/sequences/06/traversability_new/";
+  std::string proj_img_dir = "/media/ganlu/PERL-SSD/Datasets/KITTI/dataset/sequences/07/traversability_new/";
   
-  if (color_queue_.size() >= 30 && gridMap_set_) {
+  if (depth_queue_.size() >= 40 && gridMap_set_) {
     sensor_msgs::PointCloud2 cloud2 = cloud_queue_.front();
     cloud_queue_.pop();
     cloud_pub_.publish(cloud2);
     sensor_msgs::PointCloud cloud;
     sensor_msgs::convertPointCloud2ToPointCloud(cloud2, cloud);
+
+    sensor_msgs::Image depth_msg = depth_queue_.front();
+    depth_queue_.pop();
+    cv_bridge::CvImagePtr cv_ptr;
+    cv_ptr = cv_bridge::toCvCopy(depth_msg, sensor_msgs::image_encodings::TYPE_16UC1);
+    cv::Mat depth_img = cv_ptr->image;
 
     //cv::Mat proj_img(cv::Size(width, height), CV_8UC3, cv::Scalar(0, 0, 0));
     cv::Mat proj_img(cv::Size(width, height), CV_8UC1, cv::Scalar(0));
@@ -81,18 +87,13 @@ void TraversabilityProjection::project(int width, int height) {
         if (!gridMap_.getIndex(position, index))
           continue;
         float traversability = gridMap_.at("traversability", index);
-        if (traversability > 0.5) {
+        if (traversability > 0.5 && depth_img.at<uint16_t>(i, j) != 0 && depth_img.at<uint16_t>(i, j) != 65535) {
           //proj_img.at<cv::Vec3b>(i, j) = cv::Vec3b(255, 0, 0);
           proj_img.at<uint8_t>(i, j) = (uint8_t) 1;
         }
       }
     }
     
-    sensor_msgs::Image color_msg = color_queue_.front();
-    color_queue_.pop();
-    cv_bridge::CvImagePtr cv_ptr;
-    cv_ptr = cv_bridge::toCvCopy(color_msg, sensor_msgs::image_encodings::RGB8);
-    cv::Mat color_img = cv_ptr->image;
     //cv::addWeighted(color_img, 0.5, proj_img, 0.5, 0, proj_img);
 
     char scan_id_c[256];

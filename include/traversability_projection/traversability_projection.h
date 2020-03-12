@@ -53,6 +53,6 @@ class TraversabilityProjection {
     bool gridMap_set_;
     int scan_id_;
     grid_map::GridMap gridMap_;
-    std::queue<sensor_msgs::Image> color_queue_;
+    std::queue<sensor_msgs::Image> depth_queue_;
     std::queue<sensor_msgs::PointCloud2> cloud_queue_;
 };
