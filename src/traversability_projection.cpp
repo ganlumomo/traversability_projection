@@ -62,9 +62,9 @@ void TraversabilityProjection::colorDepthCallback(const sensor_msgs::ImageConstP
 
 void TraversabilityProjection::project(int width, int height) {
 
-  std::string proj_img_dir = "/media/ganlu/PERL-SSD/Datasets/KITTI/dataset/sequences/07/traversability_new/";
+  std::string proj_img_dir = "/media/ganlu/PERL-SSD/Datasets/KITTI/dataset/sequences/10/traversability_new/";
   
-  if (depth_queue_.size() >= 40 && gridMap_set_) {
+  if (depth_queue_.size() >= 35 && gridMap_set_) {
     sensor_msgs::PointCloud2 cloud2 = cloud_queue_.front();
     cloud_queue_.pop();
     cloud_pub_.publish(cloud2);
