@@ -26,26 +26,33 @@ class TraversabilityProjection {
       : nh_(nh)
       , gridMap_set_(false)
       , scan_id_(0) {
-        color_sub_ = new message_filters::Subscriber<sensor_msgs::Image> (nh_, "/kitti_player_mini_node/left_color_image", 10);
-        depth_sub_ = new message_filters::Subscriber<sensor_msgs::Image> (nh_, "/kitti_player_mini_node/depth_image", 10);
-        sync_ = new message_filters::Synchronizer<MySyncPolicy> (MySyncPolicy(100), *color_sub_, *depth_sub_);
-        sync_->registerCallback(boost::bind(&TraversabilityProjection::colorDepthCallback, this, _1, _2));
+        // KITTI dataset
+        //color_sub_ = new message_filters::Subscriber<sensor_msgs::Image> (nh_, "/kitti_player_mini_node/left_color_image", 10);
+        //depth_sub_ = new message_filters::Subscriber<sensor_msgs::Image> (nh_, "/kitti_player_mini_node/depth_image", 10);
+        // TartanAir dataset
+        //color_sub_ = new message_filters::Subscriber<sensor_msgs::Image> (nh_, "/left_color_image", 10);
+        //depth_sub_ = new message_filters::Subscriber<sensor_msgs::Image> (nh_, "/left_depth_image", 10);
+        //sync_ = new message_filters::Synchronizer<MySyncPolicy> (MySyncPolicy(100), *color_sub_, *depth_sub_);
+        //sync_->registerCallback(boost::bind(&TraversabilityProjection::colorDepthCallback, this, _1, _2));
+        depth_sub_ = nh_.subscribe("/left_depth_image", 10, &TraversabilityProjection::depthCallback, this);
         gridMap_sub_ = nh_.subscribe("/traversability_estimation/traversability_map", 1, &TraversabilityProjection::gridMapCallback, this);
         cloud_pub_ = nh_.advertise<sensor_msgs::PointCloud2> ("visualized_cloud", 1);
       }
 
-    void colorDepthCallback(const sensor_msgs::ImageConstPtr& color_msg,
-                            const sensor_msgs::ImageConstPtr& depth_msg);
+    //void colorDepthCallback(const sensor_msgs::ImageConstPtr& color_msg,
+    //                        const sensor_msgs::ImageConstPtr& depth_msg);
+    void depthCallback(const sensor_msgs::ImageConstPtr& depth_msg);
 
     void gridMapCallback(const grid_map_msgs::GridMap& gridMap_msg);
 
-    void project(int width, int height);
+    bool project();
 
   private:
     ros::NodeHandle nh_;
     message_filters::Synchronizer<MySyncPolicy>* sync_;
     message_filters::Subscriber<sensor_msgs::Image>* color_sub_;
-    message_filters::Subscriber<sensor_msgs::Image>* depth_sub_;
+    //message_filters::Subscriber<sensor_msgs::Image>* depth_sub_;
+    ros::Subscriber depth_sub_;
     ros::Subscriber gridMap_sub_;
     ros::Publisher cloud_pub_;
     tf::TransformListener tf_listener_;

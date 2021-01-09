@@ -5,8 +5,9 @@ int main(int argc, char **argv) {
   ros::init(argc, argv, "traversability_projection_node");
   ros::NodeHandle nh("~");
   
-  TraversabilityProjection traversablity_projection(nh);
-  ros::spin();
+  TraversabilityProjection traversability_projection(nh);
+  //ros::spin();
+  traversability_projection.project();
 
   return 0;
 }
