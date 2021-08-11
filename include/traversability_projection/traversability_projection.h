@@ -26,8 +26,8 @@ class TraversabilityProjection {
       : nh_(nh)
       , gridMap_set_(false)
       , scan_id_(0) {
-        color_sub_ = new message_filters::Subscriber<sensor_msgs::Image> (nh_, "/kitti_player_mini_node/left_color_image", 10);
-        depth_sub_ = new message_filters::Subscriber<sensor_msgs::Image> (nh_, "/kitti_player_mini_node/depth_image", 10);
+        color_sub_ = new message_filters::Subscriber<sensor_msgs::Image> (nh_, "/camera/color/image_raw", 10);
+        depth_sub_ = new message_filters::Subscriber<sensor_msgs::Image> (nh_, "/camera/aligned_depth_to_color/image_raw", 10);
         sync_ = new message_filters::Synchronizer<MySyncPolicy> (MySyncPolicy(100), *color_sub_, *depth_sub_);
         sync_->registerCallback(boost::bind(&TraversabilityProjection::colorDepthCallback, this, _1, _2));
         gridMap_sub_ = nh_.subscribe("/traversability_estimation/traversability_map", 1, &TraversabilityProjection::gridMapCallback, this);
@@ -55,4 +55,5 @@ class TraversabilityProjection {
     grid_map::GridMap gridMap_;
     std::queue<sensor_msgs::Image> depth_queue_;
     std::queue<sensor_msgs::PointCloud2> cloud_queue_;
+    std::queue<sensor_msgs::Image> color_queue_;
 };
